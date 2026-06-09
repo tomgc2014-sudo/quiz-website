@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>קיסר השכונה - חידון</title>
+
+<style>
+body{
+    margin:0;
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-family:Arial,sans-serif;
+
+    background-image:url("קיסר השכונה.jpg");
+    background-size:contain;
+    background-repeat:no-repeat;
+    background-position:center center;
+    background-attachment:fixed;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
+    z-index:-1;
+}
+
+.container{
+    width:95vw;
+    max-width:430px; /* phone width */
+    margin:auto;
+}
+
+.header{
+    background:#4e54c8;
+    color:white;
+    text-align:center;
+    padding:20px;
+    border-radius:20px 20px 0 0;
+    font-size:28px;
+    font-weight:bold;
+}
+
+.question{
+    background:white;
+    padding:30px;
+    border-radius:0 0 20px 20px;
+    box-shadow:0 0 25px rgba(0,0,0,.3);
+}
+
+.question h2{
+    margin-top:0;
+}
+
+label{
+    display:block;
+    padding:15px;
+    margin:10px 0;
+    background:#f4f6ff;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+label:hover{
+    background:#dfe3ff;
+}
+
+.buttons{
+    margin-top:25px;
+    text-align:center;
+}
+
+button{
+    border:none;
+    padding:12px 24px;
+    margin:5px;
+    border-radius:10px;
+    background:#4e54c8;
+    color:white;
+    cursor:pointer;
+    font-size:18px;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+#result{
+    text-align:center;
+}
+
+#result h2{
+    color:#4e54c8;
+}
+
+.score{
+    font-size:42px;
+    font-weight:bold;
+    margin:20px 0;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="header" id="header">
+שאלה 1
+</div>
+
+<div id="quiz"></div>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+question:"מי הדמות הראשית בסיפור?",
+answers:[
+{text:"גד",correct:true},
+{text:"עידו",correct:false},
+{text:"תמר",correct:false},
+{text:"מושיקו",correct:false}
+]
+},
+
+{
+question:"מה שמו של הכלב?",
+answers:[
+{text:"קיסר",correct:true},
+{text:"מלך",correct:false},
+{text:"צ'רלי",correct:false},
+{text:"טרזן",correct:false}
+]
+},
+
+{
+question:"מי הביא את קיסר לשכונה?",
+answers:[
+{text:"עידו",correct:true},
+{text:"גד",correct:false},
+{text:"מושיקו",correct:false},
+{text:"תמר",correct:false}
+]
+},
+
+{
+question:"מה היה המקצוע של אביו של גד?",
+answers:[
+{text:"שוטר",correct:true},
+{text:"רופא",correct:false},
+{text:"מורה",correct:false},
+{text:"נהג",correct:false}
+]
+},
+
+{
+question:"מי ניסה להגן על גד?",
+answers:[
+{text:"מושיקו",correct:true},
+{text:"עידו",correct:false},
+{text:"תמר",correct:false},
+{text:"קיסר",correct:false}
+]
+},
+
+{
+question:"כיצד קרא גד לעצמו בעולם הדמיון?",
+answers:[
+{text:"נשר גדול",correct:true},
+{text:"זאב אפור",correct:false},
+{text:"נץ הזהב",correct:false},
+{text:"ציפור האש",correct:false}
+]
+},
+
+{
+question:"מה היה אחד הנושאים המרכזיים בספר?",
+answers:[
+{text:"חברות ובדידות",correct:true},
+{text:"חלל",correct:false},
+{text:"קסמים",correct:false},
+{text:"דינוזאורים",correct:false}
+]
+},
+
+{
+question:"מה עשתה תמר בסוף הספר?",
+answers:[
+{text:"התנצלה בפני גד",correct:true},
+{text:"עברה דירה",correct:false},
+{text:"המשיכה בחרם",correct:false},
+{text:"עזבה את בית הספר",correct:false}
+]
+},
+
+{
+question:"מדוע גד הרגיש בודד?",
+answers:[
+{text:"אביו נהרג והוא היה מוחרם",correct:true},
+{text:"עבר עיר",correct:false},
+{text:"איבד את הכלב",correct:false},
+{text:"לא היה לו חדר",correct:false}
+]
+},
+
+{
+question:"איך מסתיים הספר?",
+answers:[
+{text:"בפיוס ותקווה",correct:true},
+{text:"במריבה",correct:false},
+{text:"בעזיבת השכונה",correct:false},
+{text:"בסוף עצוב",correct:false}
+]
+}
+
+];
+
+function shuffle(array){
+for(let i=array.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+}
+
+shuffle(questions);
+
+questions.forEach(q=>{
+shuffle(q.answers);
+});
+
+let currentQuestion = 0;
+let score = 0;
+let selectedAnswers = [];
+
+function renderQuestion(){
+
+const q = questions[currentQuestion];
+
+document.getElementById("header").textContent =
+`שאלה ${currentQuestion+1} מתוך ${questions.length}`;
+
+let html = `
+<div class="question">
+<h2>${q.question}</h2>
+`;
+
+q.answers.forEach((answer,index)=>{
+
+html += `
+<label>
+<input type="radio" name="answer" value="${index}">
+${answer.text}
+</label>
+`;
+
+});
+
+html += `
+<div class="buttons">
+${currentQuestion>0 ?
+'<button onclick="previousQuestion()">הקודם</button>'
+: ''
+}
+<button onclick="nextQuestion()">
+${currentQuestion===questions.length-1 ?
+'סיים חידון'
+:
+'הבא'
+}
+</button>
+</div>
+</div>
+`;
+
+document.getElementById("quiz").innerHTML = html;
+}
+
+function nextQuestion(){
+
+const selected =
+document.querySelector('input[name="answer"]:checked');
+
+if(!selected){
+alert("יש לבחור תשובה");
+return;
+}
+
+selectedAnswers[currentQuestion] =
+Number(selected.value);
+
+if(currentQuestion < questions.length-1){
+
+currentQuestion++;
+renderQuestion();
+
+}else{
+
+finishQuiz();
+
+}
+}
+
+function previousQuestion(){
+
+if(currentQuestion>0){
+
+currentQuestion--;
+renderQuestion();
+
+}
+}
+
+function finishQuiz(){
+
+score = 0;
+
+questions.forEach((q,index)=>{
+
+const selectedIndex = selectedAnswers[index];
+
+if(
+selectedIndex !== undefined &&
+q.answers[selectedIndex].correct
+){
+score++;
+}
+
+});
+
+document.getElementById("header").textContent =
+"תוצאות";
+
+document.getElementById("quiz").innerHTML = `
+<div class="question" id="result">
+
+<h2>🎉 סיימת את החידון!</h2>
+
+<div class="score">
+${score}/${questions.length}
+</div>
+
+<p>
+ענית נכון על ${score} מתוך ${questions.length} שאלות.
+</p>
+
+<button onclick="location.reload()">
+שחק שוב
+</button>
+
+</div>
+`;
+}
+
+renderQuestion();
+
+</script>
+
+</body>
+</html>
